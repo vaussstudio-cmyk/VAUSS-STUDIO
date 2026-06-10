@@ -341,34 +341,20 @@ html,body{font-family:var(--font);background:var(--bg);min-height:100vh;color:va
       </div>
     </div>
 
-    <!-- Step 1 : Config Supabase -->
-    <div class="cfg-step active" id="step-config">
-      <div class="auth-title">⚙ Configuration</div>
-      <div class="auth-sub">Entrez vos identifiants Supabase pour initialiser la plateforme. Cette étape n'est requise qu'une seule fois.</div>
-      <input class="auth-input" id="cfg-url" type="url" placeholder="URL Supabase — https://xxx.supabase.co">
-      <input class="auth-input" id="cfg-key" type="text" placeholder="Clé API publique (anon key)">
-      <div class="auth-msg" id="cfg-msg"></div>
-      <button class="auth-btn" onclick="saveConfig()"><i class="ti ti-check"></i> Enregistrer et continuer</button>
-    </div>
-
-    <!-- Step 2 : Login -->
-    <div class="cfg-step" id="step-login">
-      <div class="auth-title">🔐 Connexion</div>
-      <div class="auth-sub">Entrez votre adresse email et votre mot de passe.</div>
-      <input class="auth-input" id="login-email" type="email" placeholder="votre@email.fr" onkeydown="if(event.key==='Enter')doLogin()">
+    <!-- Accès simple par mot de passe -->
+    <div class="cfg-step active" id="step-login">
+      <div class="auth-title">🔐 Accès</div>
+      <div class="auth-sub">Entrez le mot de passe pour accéder à la plateforme.</div>
       <input class="auth-input" id="login-pass" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')doLogin()">
       <div class="auth-msg" id="login-msg"></div>
-      <button class="auth-btn" id="login-btn" onclick="doLogin()"><i class="ti ti-login"></i> Se connecter</button>
-      <div style="text-align:center;margin-top:8px">
-        <span style="font-size:10.5px;color:var(--t3);cursor:pointer;text-decoration:underline" onclick="showStep('config')">Modifier la configuration</span>
-      </div>
+      <button class="auth-btn" id="login-btn" onclick="doLogin()"><i class="ti ti-login"></i> Accéder</button>
     </div>
 
-    <!-- Step 3 : Sent -->
+    <!-- Step chargement -->
     <div class="cfg-step" id="step-sent">
       <div style="text-align:center;font-size:52px;margin-bottom:16px">✅</div>
       <div class="auth-title" style="text-align:center">Connecté !</div>
-      <div class="auth-sub" style="text-align:center">Chargement de vos dossiers…</div>
+      <div class="auth-sub" style="text-align:center">Chargement des dossiers…</div>
     </div>
   </div>
   <div class="auth-footer">Plateforme sécurisée — Données hébergées sur Supabase (EU)</div>
@@ -583,12 +569,14 @@ function toast(msg, dur){
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 
-// ── Config ──
-function getConfig(){try{return JSON.parse(localStorage.getItem('vbd_hub_config')||'null');}catch(e){return null;}}
-function saveConfigLS(u,k){localStorage.setItem('vbd_hub_config',JSON.stringify({url:u,key:k}));}
+// ── Config Supabase (hardcodée) ──
+var _SUPABASE_URL='https://wwaknewipnsurmxsblde.supabase.co';
+var _SUPABASE_KEY='sb_publishable_zVXKQKyLPPxXqnffILF2ZA_XHTiQFTa';
+var _SHARED_EMAIL='vauss.studio@gmail.com';
+var _APP_PASSWORD='vauss-studio-mpa';
 
 function showStep(s){
-  ['config','login','sent'].forEach(function(x){
+  ['login','sent'].forEach(function(x){
     var el=document.getElementById('step-'+x);
     if(el)el.className='cfg-step'+(x===s?' active':'');
   });
@@ -599,39 +587,29 @@ function showMsg(id,type,msg){
   if(el){el.className='auth-msg '+type;el.textContent=msg;}
 }
 
-function initSB(url,key){
+function initSB(){
   try{
-    _sb=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    _sb=window.supabase.createClient(_SUPABASE_URL,_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
     return true;
   }catch(e){return false;}
 }
 
-function saveConfig(){
-  var url=(document.getElementById('cfg-url').value||'').trim();
-  var key=(document.getElementById('cfg-key').value||'').trim();
-  if(!url||!key){showMsg('cfg-msg','error','Remplissez les deux champs.');return;}
-  if(!initSB(url,key)){showMsg('cfg-msg','error','Impossible d\'initialiser.');return;}
-  saveConfigLS(url,key);
-  showMsg('cfg-msg','success','Configuration enregistrée !');
-  setTimeout(function(){showStep('login');},600);
-}
-
-// ── Login email/password ──
+// ── Login mot de passe unique ──
 async function doLogin(){
-  var email=(document.getElementById('login-email').value||'').trim();
   var pass=(document.getElementById('login-pass').value||'').trim();
-  if(!email||!pass){showMsg('login-msg','error','Email et mot de passe requis.');return;}
+  if(!pass){showMsg('login-msg','error','Mot de passe requis.');return;}
+  if(pass!==_APP_PASSWORD){showMsg('login-msg','error','Mot de passe incorrect.');return;}
   var btn=document.getElementById('login-btn');
   btn.disabled=true;btn.textContent='Connexion…';
   try{
-    var r=await _sb.auth.signInWithPassword({email:email,password:pass});
+    var r=await _sb.auth.signInWithPassword({email:_SHARED_EMAIL,password:_APP_PASSWORD});
     if(r.error)throw r.error;
     showStep('sent');
     await onSession(r.data.session);
   }catch(err){
-    showMsg('login-msg','error','Erreur : '+err.message);
+    showMsg('login-msg','error','Erreur de connexion. Contactez l'administrateur.');
     btn.disabled=false;
-    btn.innerHTML='<i class="ti ti-login"></i> Se connecter';
+    btn.innerHTML='<i class="ti ti-login"></i> Accéder';
   }
 }
 
@@ -856,36 +834,28 @@ document.querySelectorAll('.modal-bg').forEach(function(m){
 
 // ── Boot ──
 (async function boot(){
-  var cfg=getConfig();
-  if(cfg&&cfg.url&&cfg.key){
-    document.getElementById('cfg-url').value=cfg.url;
-    document.getElementById('cfg-key').value=cfg.key;
-    if(!initSB(cfg.url,cfg.key)){
-      document.getElementById('auth-overlay').classList.remove('hidden');
-      showStep('config');
-      return;
-    }
-    var r=await _sb.auth.getSession();
-    if(r.data&&r.data.session){
-      await onSession(r.data.session);
-    } else {
+  if(!initSB()){
+    document.getElementById('auth-overlay').classList.remove('hidden');
+    showStep('login');
+    return;
+  }
+  var r=await _sb.auth.getSession();
+  if(r.data&&r.data.session){
+    await onSession(r.data.session);
+  } else {
+    document.getElementById('auth-overlay').classList.remove('hidden');
+    showStep('login');
+  }
+  _sb.auth.onAuthStateChange(async function(ev,session){
+    if(ev==='SIGNED_IN'&&session)await onSession(session);
+    else if(ev==='SIGNED_OUT'){
+      _user=null;
+      document.getElementById('user-pill').style.display='none';
+      document.getElementById('btn-logout').style.display='none';
       document.getElementById('auth-overlay').classList.remove('hidden');
       showStep('login');
     }
-    _sb.auth.onAuthStateChange(async function(ev,session){
-      if(ev==='SIGNED_IN'&&session)await onSession(session);
-      else if(ev==='SIGNED_OUT'){
-        _user=null;
-        document.getElementById('user-pill').style.display='none';
-        document.getElementById('btn-logout').style.display='none';
-        document.getElementById('auth-overlay').classList.remove('hidden');
-        showStep('login');
-      }
-    });
-  } else {
-    document.getElementById('auth-overlay').classList.remove('hidden');
-    showStep('config');
-  }
+  });
 })();
 </script>
 </body>
