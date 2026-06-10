@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vauss Studio — Accueil</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0F2236;
+  --bg2:#1B3A5C;
+  --card:#fff;
+  --blue:#2563EB;
+  --blue2:#1d4ed8;
+  --green:#16A34A;
+  --amber:#D97706;
+  --red:#DC2626;
+  --gray:#6B7280;
+  --t1:#1A1814;
+  --t2:#56524A;
+  --t3:#96928A;
+  --bd:#DDD9D0;
+  --bd2:#C8C4BC;
+  --s2:#F8F6F2;
+  --r:8px;--r2:14px;--r3:20px;
+  --font:system-ui,-apple-system,'Segoe UI',sans-serif;
+  --sh:0 2px 12px rgba(0,0,0,.08);
+  --sh2:0 8px 32px rgba(0,0,0,.15);
+
+  /* Statuts */
+  --st-afaire:#DC2626;       --st-afaire-bg:#FEF2F2;
+  --st-encours:#D97706;      --st-encours-bg:#FFFBEB;
+  --st-subv:#CA8A04;         --st-subv-bg:#FEF9C3;
+  --st-realise:#16A34A;      --st-realise-bg:#F0FDF4;
+  --st-annule:#6B7280;       --st-annule-bg:#F9FAFB;
+}
+
+html,body{font-family:var(--font);background:var(--bg);min-height:100vh;color:var(--t1)}
+
+/* ── LAYOUT ── */
+#app{display:flex;flex-direction:column;min-height:100vh}
+
+/* ── TOPBAR ── */
+#topbar{
+  background:var(--bg2);
+  padding:0 24px;
+  height:56px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  flex-shrink:0;
+  position:sticky;top:0;z-index:100;
+}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-mark{width:36px;height:36px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-mark svg{width:28px;height:28px}
+.logo-text{font-size:14px;font-weight:900;color:#fff;letter-spacing:-.02em}
+.logo-sub{font-size:9px;font-weight:500;color:rgba(255,255,255,.5);letter-spacing:.04em}
+.tb-spacer{flex:1}
+.tb-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 13px;border-radius:var(--r);border:none;
+  font-size:11px;font-weight:600;font-family:var(--font);
+  cursor:pointer;transition:all .13s;
+  color:#fff;background:rgba(255,255,255,.1);
+}
+.tb-btn:hover{background:rgba(255,255,255,.18)}
+.tb-btn.primary{background:var(--blue)}
+.tb-btn.primary:hover{background:var(--blue2)}
+#user-pill{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.08);
+  border-radius:20px;padding:4px 12px 4px 6px;
+}
+#user-avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:var(--blue);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;flex-shrink:0;
+}
+#user-name{font-size:10.5px;font-weight:600;color:rgba(255,255,255,.85);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── MAIN ── */
+#main{flex:1;padding:32px 24px;max-width:1100px;margin:0 auto;width:100%}
+
+/* ── HERO BANNER ── */
+.hero{
+  background:linear-gradient(135deg,#1B3A5C 0%,#2563EB 100%);
+  border-radius:var(--r3);
+  padding:32px 36px;
+  margin-bottom:28px;
+  display:flex;align-items:center;gap:24px;
+  box-shadow:0 8px 32px rgba(37,99,235,.3);
+}
+.hero-text{flex:1}
+.hero-title{font-size:22px;font-weight:900;color:#fff;margin-bottom:6px}
+.hero-sub{font-size:12px;color:rgba(255,255,255,.7);line-height:1.6}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+.hero-btn{
+  display:flex;align-items:center;gap:8px;
+  padding:11px 20px;border-radius:var(--r2);border:none;
+  font-size:12px;font-weight:700;font-family:var(--font);
+  cursor:pointer;transition:all .15s;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+.hero-btn.new{background:#fff;color:var(--blue)}
+.hero-btn.new:hover{background:#EFF4FF;transform:translateY(-1px)}
+.hero-btn.new i{font-size:16px}
+.hero-btn.secondary{background:rgba(255,255,255,.15);color:#fff;border:1.5px solid rgba(255,255,255,.3)}
+.hero-btn.secondary:hover{background:rgba(255,255,255,.25)}
+
+/* ── STATS BAR ── */
+.stats-bar{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:12px;
+  margin-bottom:28px;
+}
+.stat-card{
+  background:var(--card);border-radius:var(--r2);padding:16px 18px;
+  box-shadow:var(--sh);border:1.5px solid var(--bd);
+  display:flex;align-items:center;gap:12px;cursor:pointer;
+  transition:all .13s;
+}
+.stat-card:hover{border-color:var(--blue);transform:translateY(-1px);box-shadow:var(--sh2)}
+.stat-card.active{border-color:var(--blue);background:var(--blue);color:#fff}
+.stat-icon{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.stat-num{font-size:22px;font-weight:900;line-height:1}
+.stat-lbl{font-size:10px;font-weight:600;color:var(--t3);margin-top:2px}
+.stat-card.active .stat-lbl{color:rgba(255,255,255,.7)}
+
+/* ── TOOLBAR ── */
+.toolbar{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:18px;flex-wrap:wrap;
+}
+.search-wrap{
+  flex:1;min-width:220px;
+  position:relative;display:flex;align-items:center;
+}
+.search-wrap i{position:absolute;left:12px;color:var(--t3);font-size:15px;pointer-events:none}
+#search-input{
+  width:100%;padding:9px 14px 9px 36px;
+  border:2px solid var(--bd);border-radius:var(--r2);
+  font-size:12px;font-family:var(--font);color:var(--t1);
+  background:#fff;transition:border-color .13s;
+}
+#search-input:focus{outline:none;border-color:var(--blue)}
+.filter-btns{display:flex;gap:6px;flex-wrap:wrap}
+.filter-btn{
+  padding:7px 13px;border-radius:20px;border:1.5px solid var(--bd);
+  background:#fff;font-size:10.5px;font-weight:600;
+  cursor:pointer;transition:all .13s;color:var(--t2);
+  display:flex;align-items:center;gap:5px;font-family:var(--font);
+}
+.filter-btn:hover{border-color:var(--blue);color:var(--blue)}
+.filter-btn.active{border-color:transparent;color:#fff}
+.sort-select{
+  padding:8px 12px;border:1.5px solid var(--bd);border-radius:var(--r);
+  font-size:11px;font-family:var(--font);color:var(--t2);background:#fff;cursor:pointer;
+}
+
+/* ── DOSSIERS GRID ── */
+#dossiers-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+  gap:16px;
+}
+.dos-card{
+  background:var(--card);border-radius:var(--r2);
+  border:2px solid var(--bd);box-shadow:var(--sh);
+  overflow:hidden;transition:all .15s;cursor:pointer;
+  display:flex;flex-direction:column;
+}
+.dos-card:hover{border-color:var(--blue);box-shadow:var(--sh2);transform:translateY(-2px)}
+.dos-card-top{padding:16px 18px 12px;flex:1}
+.dos-card-status{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:9.5px;font-weight:700;margin-bottom:10px}
+.dos-card-name{font-size:14px;font-weight:800;color:var(--t1);margin-bottom:3px;line-height:1.3}
+.dos-card-num{font-size:10px;color:var(--t3);margin-bottom:10px}
+.dos-card-meta{display:flex;gap:14px;flex-wrap:wrap}
+.dos-card-meta-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--t2)}
+.dos-card-meta-item i{font-size:12px;color:var(--t3)}
+.dos-card-bottom{
+  padding:10px 16px;border-top:1px solid var(--bd);
+  background:var(--s2);display:flex;gap:6px;align-items:center;
+}
+.dos-card-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 11px;border-radius:var(--r);border:1.5px solid var(--bd2);
+  background:#fff;font-size:10px;font-weight:600;font-family:var(--font);
+  cursor:pointer;transition:all .13s;color:var(--t2);
+}
+.dos-card-btn:hover{border-color:var(--blue);color:var(--blue)}
+.dos-card-btn.open{background:var(--blue);color:#fff;border-color:var(--blue)}
+.dos-card-btn.open:hover{background:var(--blue2)}
+.dos-card-btn.del:hover{border-color:var(--red);color:var(--red)}
+
+/* ── STATUT PILLS ── */
+.st-afaire{background:var(--st-afaire-bg);color:var(--st-afaire)}
+.st-encours{background:var(--st-encours-bg);color:var(--st-encours)}
+.st-subv{background:var(--st-subv-bg);color:var(--st-subv)}
+.st-realise{background:var(--st-realise-bg);color:var(--st-realise)}
+.st-annule{background:var(--st-annule-bg);color:var(--st-annule)}
+
+/* ── EMPTY STATE ── */
+.empty-state{
+  grid-column:1/-1;text-align:center;
+  padding:60px 20px;color:var(--t3);
+}
+.empty-state i{font-size:48px;margin-bottom:14px;display:block;opacity:.4}
+.empty-state p{font-size:13px;margin-bottom:16px}
+
+/* ── MODALS ── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  z-index:500;display:none;align-items:center;justify-content:center;
+}
+.modal-bg.open{display:flex}
+.modal{
+  background:#fff;border-radius:var(--r3);padding:32px 36px;
+  width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,.3);
+  max-height:90vh;overflow-y:auto;
+}
+.modal h2{font-size:17px;font-weight:800;color:var(--t1);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.modal h2 i{color:var(--blue);font-size:20px}
+.modal-sub{font-size:11.5px;color:var(--t2);margin-bottom:22px;line-height:1.6}
+.modal label{display:block;font-size:10.5px;font-weight:700;color:var(--t2);margin-bottom:4px;margin-top:12px}
+.modal input,.modal select{
+  width:100%;padding:10px 13px;border:2px solid var(--bd);border-radius:var(--r);
+  font-size:12.5px;font-family:var(--font);color:var(--t1);background:#fff;transition:border-color .13s;
+}
+.modal input:focus,.modal select:focus{outline:none;border-color:var(--blue)}
+.modal-actions{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+.btn{
+  padding:9px 18px;border-radius:var(--r);border:none;
+  font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .13s;
+}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue2)}
+.btn-green{background:var(--green);color:#fff}
+.btn-gray{background:var(--s2);color:var(--t2);border:1.5px solid var(--bd)}.btn-gray:hover{background:var(--bd)}
+.btn-red{background:#FEF2F2;color:var(--red);border:1.5px solid var(--red)}.btn-red:hover{background:var(--red);color:#fff}
+.msg{font-size:11px;padding:8px 12px;border-radius:var(--r);margin-top:10px;display:none}
+.msg.success{background:#F0FDF4;color:var(--green);display:block;border:1px solid var(--green)}
+.msg.error{background:#FEF2F2;color:var(--red);display:block;border:1px solid var(--red)}
+.msg.info{background:#EFF4FF;color:var(--blue);display:block;border:1px solid var(--blue)}
+
+/* ── AUTH OVERLAY ── */
+#auth-overlay{
+  position:fixed;inset:0;
+  background:linear-gradient(135deg,#0F2236 0%,#1B3A5C 100%);
+  z-index:1000;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:20px;
+}
+#auth-overlay.hidden{display:none}
+.auth-card{
+  background:#fff;border-radius:var(--r3);padding:40px 44px;
+  width:100%;max-width:440px;box-shadow:0 24px 64px rgba(0,0,0,.4);
+}
+.auth-logo{display:flex;align-items:center;gap:14px;margin-bottom:30px}
+.auth-logo-mark{
+  width:52px;height:52px;background:var(--bg2);border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+}
+.auth-logo-mark svg{width:38px;height:38px}
+.auth-title{font-size:20px;font-weight:900;color:var(--t1);margin-bottom:5px}
+.auth-sub{font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:24px}
+.auth-input{
+  width:100%;padding:12px 15px;border:2px solid var(--bd);border-radius:var(--r);
+  font-size:13px;font-family:var(--font);color:var(--t1);background:#fff;
+  transition:border-color .13s;margin-bottom:10px;
+}
+.auth-input:focus{outline:none;border-color:var(--blue)}
+.auth-btn{
+  width:100%;padding:13px;background:var(--blue);color:#fff;
+  border:none;border-radius:var(--r);font-size:13px;font-weight:700;
+  font-family:var(--font);cursor:pointer;transition:background .13s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-bottom:8px;
+}
+.auth-btn:hover{background:var(--blue2)}
+.auth-btn:disabled{opacity:.6;cursor:default}
+.auth-msg{font-size:11px;padding:9px 13px;border-radius:var(--r);margin-bottom:10px;display:none}
+.auth-msg.success{background:#F0FDF4;color:var(--green);display:block;border:1px solid var(--green)}
+.auth-msg.error{background:#FEF2F2;color:var(--red);display:block;border:1px solid var(--red)}
+.auth-msg.info{background:#EFF4FF;color:var(--blue);display:block;border:1px solid var(--blue)}
+.auth-footer{font-size:10.5px;color:rgba(255,255,255,.45);text-align:center}
+
+/* ── CONFIG STEP ── */
+.cfg-step{display:none}
+.cfg-step.active{display:block}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:#1A1814;color:#fff;padding:11px 20px;border-radius:10px;
+  font-size:12px;font-weight:600;z-index:9999;transition:transform .3s ease;
+  white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4);pointer-events:none;
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── STATUS CHANGE DROPDOWN ── */
+.status-select{
+  padding:4px 8px;border-radius:6px;border:1px solid var(--bd2);
+  font-size:10px;font-weight:700;font-family:var(--font);cursor:pointer;
+  background:#fff;
+}
+
+@media(max-width:600px){
+  .stats-bar{grid-template-columns:repeat(2,1fr)}
+  .hero{flex-direction:column;gap:16px}
+  .hero-actions{width:100%}
+  .hero-btn{flex:1;justify-content:center}
+  #main{padding:16px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ AUTH OVERLAY ══ -->
+<div id="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-mark">
+        <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="38" height="38" rx="8" fill="#1B3A5C"/>
+          <text x="4" y="26" font-family="Georgia,serif" font-size="20" font-weight="700" fill="#fff">V</text>
+          <text x="18" y="26" font-family="Georgia,serif" font-size="12" fill="#8BB4D8">S</text>
+          <rect x="26" y="6" width="3" height="18" rx="1.5" fill="#E8A030"/>
+          <rect x="31" y="10" width="3" height="14" rx="1.5" fill="#E8A030"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:18px;font-weight:900;color:var(--t1)">Vauss Studio</div>
+        <div style="font-size:10px;color:var(--t3)">AMO MPA &amp; MOE DPAH — Guadeloupe</div>
+      </div>
+    </div>
+
+    <!-- Step 1 : Config Supabase -->
+    <div class="cfg-step active" id="step-config">
+      <div class="auth-title">⚙ Configuration</div>
+      <div class="auth-sub">Entrez vos identifiants Supabase pour initialiser la plateforme. Cette étape n'est requise qu'une seule fois.</div>
+      <input class="auth-input" id="cfg-url" type="url" placeholder="URL Supabase — https://xxx.supabase.co">
+      <input class="auth-input" id="cfg-key" type="text" placeholder="Clé API publique (anon key)">
+      <div class="auth-msg" id="cfg-msg"></div>
+      <button class="auth-btn" onclick="saveConfig()"><i class="ti ti-check"></i> Enregistrer et continuer</button>
+    </div>
+
+    <!-- Step 2 : Login -->
+    <div class="cfg-step" id="step-login">
+      <div class="auth-title">🔐 Connexion</div>
+      <div class="auth-sub">Entrez votre adresse email et votre mot de passe.</div>
+      <input class="auth-input" id="login-email" type="email" placeholder="votre@email.fr" onkeydown="if(event.key==='Enter')doLogin()">
+      <input class="auth-input" id="login-pass" type="password" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="auth-msg" id="login-msg"></div>
+      <button class="auth-btn" id="login-btn" onclick="doLogin()"><i class="ti ti-login"></i> Se connecter</button>
+      <div style="text-align:center;margin-top:8px">
+        <span style="font-size:10.5px;color:var(--t3);cursor:pointer;text-decoration:underline" onclick="showStep('config')">Modifier la configuration</span>
+      </div>
+    </div>
+
+    <!-- Step 3 : Sent -->
+    <div class="cfg-step" id="step-sent">
+      <div style="text-align:center;font-size:52px;margin-bottom:16px">✅</div>
+      <div class="auth-title" style="text-align:center">Connecté !</div>
+      <div class="auth-sub" style="text-align:center">Chargement de vos dossiers…</div>
+    </div>
+  </div>
+  <div class="auth-footer">Plateforme sécurisée — Données hébergées sur Supabase (EU)</div>
+</div>
+
+<!-- ══ TOPBAR ══ -->
+<div id="topbar">
+  <a class="logo" href="#">
+    <div class="logo-mark">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="28" height="28" rx="6" fill="#1B3A5C"/>
+        <text x="3" y="20" font-family="Georgia,serif" font-size="15" font-weight="700" fill="#fff">V</text>
+        <text x="13" y="20" font-family="Georgia,serif" font-size="9" fill="#8BB4D8">S</text>
+        <rect x="17" y="4" width="2" height="14" rx="1" fill="#E8A030"/>
+        <rect x="21" y="7" width="2" height="11" rx="1" fill="#E8A030"/>
+        <rect x="25" y="10" width="2" height="8" rx="1" fill="#E8A030"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">Vauss Studio</div>
+      <div class="logo-sub">AMO MPA &amp; MOE DPAH</div>
+    </div>
+  </a>
+  <div class="tb-spacer"></div>
+  <div id="user-pill" style="display:none">
+    <div id="user-avatar">?</div>
+    <span id="user-name"></span>
+  </div>
+  <button class="tb-btn" id="btn-logout" style="display:none" onclick="doLogout()"><i class="ti ti-logout"></i> Déconnexion</button>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div id="main">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-text">
+      <div class="hero-title">Bienvenue sur Vauss Studio</div>
+      <div class="hero-sub">Plateforme de gestion des diagnostics MPA — Maintien à domicile &amp; accessibilité PMR<br>Guadeloupe, Marie-Galante, Les Saintes, La Désirade</div>
+    </div>
+    <div class="hero-actions">
+      <button class="hero-btn new" onclick="openNewDossier()">
+        <i class="ti ti-plus"></i> Nouveau diagnostic
+      </button>
+      <button class="hero-btn secondary" onclick="loadDossiers()">
+        <i class="ti ti-refresh"></i> Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card" onclick="filterByStatut('all')" id="stat-all">
+      <div class="stat-icon" style="background:#EFF4FF;color:var(--blue)"><i class="ti ti-folders"></i></div>
+      <div><div class="stat-num" id="cnt-all">0</div><div class="stat-lbl">Total dossiers</div></div>
+    </div>
+    <div class="stat-card" onclick="filterByStatut('afaire')" id="stat-afaire">
+      <div class="stat-icon" style="background:var(--st-afaire-bg);color:var(--st-afaire)"><i class="ti ti-alert-circle"></i></div>
+      <div><div class="stat-num" id="cnt-afaire">0</div><div class="stat-lbl">À faire</div></div>
+    </div>
+    <div class="stat-card" onclick="filterByStatut('encours')" id="stat-encours">
+      <div class="stat-icon" style="background:var(--st-encours-bg);color:var(--st-encours)"><i class="ti ti-loader-2"></i></div>
+      <div><div class="stat-num" id="cnt-encours">0</div><div class="stat-lbl">En cours</div></div>
+    </div>
+    <div class="stat-card" onclick="filterByStatut('subv')" id="stat-subv">
+      <div class="stat-icon" style="background:var(--st-subv-bg);color:var(--st-subv)"><i class="ti ti-coin"></i></div>
+      <div><div class="stat-num" id="cnt-subv">0</div><div class="stat-lbl">Subventionné</div></div>
+    </div>
+    <div class="stat-card" onclick="filterByStatut('realise')" id="stat-realise">
+      <div class="stat-icon" style="background:var(--st-realise-bg);color:var(--st-realise)"><i class="ti ti-check"></i></div>
+      <div><div class="stat-num" id="cnt-realise">0</div><div class="stat-lbl">Réalisés</div></div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <i class="ti ti-search"></i>
+      <input type="text" id="search-input" placeholder="Rechercher par nom ou prénom du bénéficiaire…" oninput="onSearch()">
+    </div>
+    <div class="filter-btns">
+      <button class="filter-btn active" id="fb-all" onclick="filterByStatut('all')" style="background:var(--blue);border-color:var(--blue);color:#fff">Tous</button>
+      <button class="filter-btn" id="fb-afaire" onclick="filterByStatut('afaire')" style="--c:var(--st-afaire)">🔴 À faire</button>
+      <button class="filter-btn" id="fb-encours" onclick="filterByStatut('encours')">🟠 En cours</button>
+      <button class="filter-btn" id="fb-subv" onclick="filterByStatut('subv')">🟡 Subventionné</button>
+      <button class="filter-btn" id="fb-realise" onclick="filterByStatut('realise')">🟢 Réalisés</button>
+      <button class="filter-btn" id="fb-annule" onclick="filterByStatut('annule')">⚫ Annulé</button>
+    </div>
+    <select class="sort-select" id="sort-select" onchange="renderGrid()">
+      <option value="date_desc">Plus récent</option>
+      <option value="date_asc">Plus ancien</option>
+      <option value="nom_asc">Nom A→Z</option>
+      <option value="nom_desc">Nom Z→A</option>
+    </select>
+  </div>
+
+  <!-- Grid -->
+  <div id="dossiers-grid">
+    <div class="empty-state">
+      <i class="ti ti-loader-2"></i>
+      <p>Chargement des dossiers…</p>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ MODAL NOUVEAU DOSSIER ══ -->
+<div class="modal-bg" id="modal-new">
+  <div class="modal">
+    <h2><i class="ti ti-plus"></i> Nouveau diagnostic MPA</h2>
+    <div class="modal-sub">Créez un nouveau dossier de diagnostic. Vous serez redirigé vers l'application de saisie.</div>
+    <label>Nom du bénéficiaire *</label>
+    <input type="text" id="new-nom" placeholder="NOM" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()">
+    <label>Prénom *</label>
+    <input type="text" id="new-prenom" placeholder="Prénom">
+    <label>Numéro de dossier</label>
+    <input type="text" id="new-num" placeholder="Généré automatiquement si vide">
+    <label>Commune</label>
+    <select id="new-commune">
+      <option value="">— Choisir —</option>
+      <optgroup label="Guadeloupe">
+        <option>Basse-Terre</option><option>Pointe-à-Pitre</option><option>Le Gosier</option>
+        <option>Les Abymes</option><option>Baie-Mahault</option><option>Capesterre-Belle-Eau</option>
+        <option>Sainte-Anne</option><option>Saint-François</option><option>Petit-Bourg</option>
+        <option>Morne-à-l'Eau</option><option>Le Moule</option><option>Sainte-Rose</option>
+        <option>Lamentin</option><option>Pointe-Noire</option><option>Bouillante</option>
+        <option>Gourbeyre</option><option>Trois-Rivières</option><option>Saint-Claude</option>
+      </optgroup>
+      <optgroup label="Marie-Galante">
+        <option>Grand-Bourg</option><option>Capesterre-de-Marie-Galante</option><option>Saint-Louis (Marie-Galante)</option>
+      </optgroup>
+      <optgroup label="Les Saintes"><option>Terre-de-Haut</option><option>Terre-de-Bas</option></optgroup>
+      <optgroup label="La Désirade"><option>La Désirade</option></optgroup>
+    </select>
+    <label>Statut initial</label>
+    <select id="new-statut">
+      <option value="afaire">🔴 À faire</option>
+      <option value="encours">🟠 En cours</option>
+    </select>
+    <div class="msg" id="new-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('modal-new')">Annuler</button>
+      <button class="btn btn-primary" onclick="createDossier()"><i class="ti ti-plus"></i> Créer et ouvrir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL CHANGER STATUT ══ -->
+<div class="modal-bg" id="modal-statut">
+  <div class="modal" style="max-width:380px">
+    <h2><i class="ti ti-tag"></i> Changer le statut</h2>
+    <div class="modal-sub" id="statut-modal-name">Dossier</div>
+    <input type="hidden" id="statut-modal-id">
+    <div style="display:grid;gap:8px;margin-bottom:12px">
+      <button class="btn" style="background:var(--st-afaire-bg);color:var(--st-afaire);border:2px solid var(--st-afaire);justify-content:flex-start;display:flex;align-items:center;gap:8px;padding:11px 14px" onclick="setStatut('afaire')"><i class="ti ti-alert-circle"></i> À faire</button>
+      <button class="btn" style="background:var(--st-encours-bg);color:var(--st-encours);border:2px solid var(--st-encours);justify-content:flex-start;display:flex;align-items:center;gap:8px;padding:11px 14px" onclick="setStatut('encours')"><i class="ti ti-loader-2"></i> En cours</button>
+      <button class="btn" style="background:var(--st-subv-bg);color:var(--st-subv);border:2px solid var(--st-subv);justify-content:flex-start;display:flex;align-items:center;gap:8px;padding:11px 14px" onclick="setStatut('subv')"><i class="ti ti-coin"></i> Subventionné</button>
+      <button class="btn" style="background:var(--st-realise-bg);color:var(--st-realise);border:2px solid var(--st-realise);justify-content:flex-start;display:flex;align-items:center;gap:8px;padding:11px 14px" onclick="setStatut('realise')"><i class="ti ti-check"></i> Réalisé / Archivé</button>
+      <button class="btn" style="background:var(--st-annule-bg);color:var(--st-annule);border:2px solid var(--st-annule);justify-content:flex-start;display:flex;align-items:center;gap:8px;padding:11px 14px" onclick="setStatut('annule')"><i class="ti ti-ban"></i> Annulé / En attente</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('modal-statut')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL SUPPRIMER ══ -->
+<div class="modal-bg" id="modal-del">
+  <div class="modal" style="max-width:380px">
+    <h2><i class="ti ti-trash" style="color:var(--red)"></i> Supprimer ce dossier</h2>
+    <div class="modal-sub">Vous êtes sur le point de supprimer définitivement le dossier :<br><b id="del-modal-name" style="color:var(--t1)"></b></div>
+    <input type="hidden" id="del-modal-id">
+    <div class="msg error" style="display:block">⚠ Cette action est irréversible. Toutes les données du dossier seront perdues.</div>
+    <div class="modal-actions">
+      <button class="btn btn-gray" onclick="closeModal('modal-del')">Annuler</button>
+      <button class="btn btn-red" onclick="confirmDelete()"><i class="ti ti-trash"></i> Supprimer définitivement</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+// ── Constants ──
+var APP_URL = 'MPA_VaussStudio_V23.html'; // fichier diagnostic sur le même serveur
+var STATUTS = {
+  afaire:  {label:'À faire',      cls:'st-afaire',  icon:'ti-alert-circle'},
+  encours: {label:'En cours',     cls:'st-encours', icon:'ti-loader-2'},
+  subv:    {label:'Subventionné', cls:'st-subv',    icon:'ti-coin'},
+  realise: {label:'Réalisé',      cls:'st-realise', icon:'ti-check'},
+  annule:  {label:'Annulé',       cls:'st-annule',  icon:'ti-ban'},
+};
+
+// ── State ──
+var _sb = null;
+var _user = null;
+var _dossiers = [];
+var _filter = 'all';
+var _search = '';
+
+// ── Toast ──
+function toast(msg, dur){
+  var el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show');},dur||2800);
+}
+
+// ── Modal ──
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// ── Config ──
+function getConfig(){try{return JSON.parse(localStorage.getItem('vbd_hub_config')||'null');}catch(e){return null;}}
+function saveConfigLS(u,k){localStorage.setItem('vbd_hub_config',JSON.stringify({url:u,key:k}));}
+
+function showStep(s){
+  ['config','login','sent'].forEach(function(x){
+    var el=document.getElementById('step-'+x);
+    if(el)el.className='cfg-step'+(x===s?' active':'');
+  });
+}
+
+function showMsg(id,type,msg){
+  var el=document.getElementById(id);
+  if(el){el.className='auth-msg '+type;el.textContent=msg;}
+}
+
+function initSB(url,key){
+  try{
+    _sb=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    return true;
+  }catch(e){return false;}
+}
+
+function saveConfig(){
+  var url=(document.getElementById('cfg-url').value||'').trim();
+  var key=(document.getElementById('cfg-key').value||'').trim();
+  if(!url||!key){showMsg('cfg-msg','error','Remplissez les deux champs.');return;}
+  if(!initSB(url,key)){showMsg('cfg-msg','error','Impossible d\'initialiser.');return;}
+  saveConfigLS(url,key);
+  showMsg('cfg-msg','success','Configuration enregistrée !');
+  setTimeout(function(){showStep('login');},600);
+}
+
+// ── Login email/password ──
+async function doLogin(){
+  var email=(document.getElementById('login-email').value||'').trim();
+  var pass=(document.getElementById('login-pass').value||'').trim();
+  if(!email||!pass){showMsg('login-msg','error','Email et mot de passe requis.');return;}
+  var btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.textContent='Connexion…';
+  try{
+    var r=await _sb.auth.signInWithPassword({email:email,password:pass});
+    if(r.error)throw r.error;
+    showStep('sent');
+    await onSession(r.data.session);
+  }catch(err){
+    showMsg('login-msg','error','Erreur : '+err.message);
+    btn.disabled=false;
+    btn.innerHTML='<i class="ti ti-login"></i> Se connecter';
+  }
+}
+
+function doLogout(){
+  if(_sb)_sb.auth.signOut();
+  _user=null;
+  document.getElementById('user-pill').style.display='none';
+  document.getElementById('btn-logout').style.display='none';
+  document.getElementById('auth-overlay').classList.remove('hidden');
+  showStep('login');
+}
+
+// ── Session ──
+async function onSession(session){
+  if(!session||!session.user){
+    document.getElementById('auth-overlay').classList.remove('hidden');
+    showStep('login');
+    return;
+  }
+  _user=session.user;
+  var email=_user.email||'';
+  document.getElementById('user-avatar').textContent=email.slice(0,2).toUpperCase();
+  document.getElementById('user-name').textContent=email;
+  document.getElementById('user-pill').style.display='flex';
+  document.getElementById('btn-logout').style.display='flex';
+  document.getElementById('auth-overlay').classList.add('hidden');
+  await loadDossiers();
+}
+
+// ── Load dossiers ──
+async function loadDossiers(){
+  if(!_sb||!_user)return;
+  var r=await _sb.from('dossiers')
+    .select('id,nom_beneficiaire,numero_dossier,statut,date_modif,commune')
+    .eq('user_id',_user.id);
+  if(r.error){toast('❌ Erreur : '+r.error.message);return;}
+  _dossiers=r.data||[];
+  updateStats();
+  renderGrid();
+}
+
+// ── Stats ──
+function updateStats(){
+  var counts={all:_dossiers.length,afaire:0,encours:0,subv:0,realise:0,annule:0};
+  _dossiers.forEach(function(d){if(counts[d.statut]!==undefined)counts[d.statut]++;});
+  Object.keys(counts).forEach(function(k){
+    var el=document.getElementById('cnt-'+k);
+    if(el)el.textContent=counts[k];
+  });
+}
+
+// ── Filter ──
+function filterByStatut(st){
+  _filter=st;
+  // Update filter buttons
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');b.style.background='';b.style.borderColor='';b.style.color='';});
+  var active=document.getElementById('fb-'+st);
+  if(active){active.classList.add('active');active.style.background='var(--blue)';active.style.borderColor='var(--blue)';active.style.color='#fff';}
+  // Update stat cards
+  document.querySelectorAll('.stat-card').forEach(function(c){c.classList.remove('active');});
+  var sc=document.getElementById('stat-'+st);if(sc)sc.classList.add('active');
+  renderGrid();
+}
+
+function onSearch(){
+  _search=document.getElementById('search-input').value.toLowerCase().trim();
+  renderGrid();
+}
+
+// ── Render grid ──
+function renderGrid(){
+  var grid=document.getElementById('dossiers-grid');
+  var sort=document.getElementById('sort-select').value;
+
+  var filtered=_dossiers.filter(function(d){
+    if(_filter!=='all'&&d.statut!==_filter)return false;
+    if(_search){
+      var nom=(d.nom_beneficiaire||'').toLowerCase();
+      if(!nom.includes(_search))return false;
+    }
+    return true;
+  });
+
+  // Sort
+  filtered.sort(function(a,b){
+    if(sort==='date_desc')return new Date(b.date_modif)-new Date(a.date_modif);
+    if(sort==='date_asc')return new Date(a.date_modif)-new Date(b.date_modif);
+    if(sort==='nom_asc')return (a.nom_beneficiaire||'').localeCompare(b.nom_beneficiaire||'');
+    if(sort==='nom_desc')return (b.nom_beneficiaire||'').localeCompare(a.nom_beneficiaire||'');
+    return 0;
+  });
+
+  if(!filtered.length){
+    grid.innerHTML='<div class="empty-state"><i class="ti ti-folder-off"></i><p>'
+      +(_search?'Aucun dossier trouvé pour "'+_search+'"':'Aucun dossier dans cette catégorie')
+      +'</p><button class="btn btn-primary" onclick="openNewDossier()"><i class="ti ti-plus"></i> Créer un diagnostic</button></div>';
+    return;
+  }
+
+  grid.innerHTML=filtered.map(function(d){
+    var st=STATUTS[d.statut]||STATUTS.afaire;
+    var dt=d.date_modif?new Date(d.date_modif).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}):'—';
+    var parts=(d.nom_beneficiaire||'').split(' ');
+    var prenom=parts.length>1?parts.slice(1).join(' '):'';
+    var nom=parts[0]||'Sans nom';
+    return '<div class="dos-card" onclick="openDossier(\''+d.id+'\')">'
+      +'<div class="dos-card-top">'
+        +'<span class="dos-card-status '+st.cls+'"><i class="ti '+st.icon+'" style="font-size:9px"></i> '+st.label+'</span>'
+        +'<div class="dos-card-name">'+nom+(prenom?' <span style="font-weight:500;color:var(--t2)">'+prenom+'</span>':'')+'</div>'
+        +'<div class="dos-card-num">N° '+(d.numero_dossier||'—')+'</div>'
+        +'<div class="dos-card-meta">'
+          +(d.commune?'<div class="dos-card-meta-item"><i class="ti ti-map-pin"></i>'+d.commune+'</div>':'')
+          +'<div class="dos-card-meta-item"><i class="ti ti-calendar"></i>'+dt+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<div class="dos-card-bottom">'
+        +'<button class="dos-card-btn open" onclick="event.stopPropagation();openDossier(\''+d.id+'\')"><i class="ti ti-folder-open"></i> Ouvrir</button>'
+        +'<button class="dos-card-btn" onclick="event.stopPropagation();openStatutModal(\''+d.id+'\',\''+encodeURIComponent(d.nom_beneficiaire||'')+'\')" title="Changer le statut"><i class="ti ti-tag"></i> Statut</button>'
+        +'<button class="dos-card-btn del" onclick="event.stopPropagation();openDeleteModal(\''+d.id+'\',\''+encodeURIComponent(d.nom_beneficiaire||'')+'\')"><i class="ti ti-trash"></i></button>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+// ── Open dossier ──
+async function openDossier(id){
+  // Save dossier ID to sessionStorage so the app can pick it up
+  sessionStorage.setItem('vbd_open_dossier_id',id);
+  // Get config
+  var cfg=getConfig();
+  if(cfg)sessionStorage.setItem('vbd_hub_config',JSON.stringify(cfg));
+  // Navigate to app
+  window.location.href=APP_URL+'?dos='+id;
+}
+
+// ── New dossier ──
+function openNewDossier(){
+  document.getElementById('new-nom').value='';
+  document.getElementById('new-prenom').value='';
+  document.getElementById('new-num').value='';
+  document.getElementById('new-commune').value='';
+  document.getElementById('new-statut').value='afaire';
+  document.getElementById('new-msg').style.display='none';
+  openModal('modal-new');
+  setTimeout(function(){document.getElementById('new-nom').focus();},100);
+}
+
+async function createDossier(){
+  var nom=(document.getElementById('new-nom').value||'').trim();
+  var prenom=(document.getElementById('new-prenom').value||'').trim();
+  var num=(document.getElementById('new-num').value||'').trim();
+  var commune=document.getElementById('new-commune').value;
+  var statut=document.getElementById('new-statut').value;
+  if(!nom){
+    var msg=document.getElementById('new-msg');
+    msg.className='msg error';msg.textContent='Le nom du bénéficiaire est requis.';msg.style.display='block';
+    return;
+  }
+  var nomComplet=nom+(prenom?' '+prenom:'');
+  // Auto-generate number if empty
+  if(!num){
+    var now=new Date();
+    num=nom+'-'+prenom+'-'+String(now.getMonth()+1).padStart(2,'0')+'/'+now.getFullYear();
+  }
+  var form={nom:nom,prenom:prenom,dos:num,com:commune,commune:commune};
+  var r=await _sb.from('dossiers').insert({
+    user_id:_user.id,
+    nom_beneficiaire:nomComplet,
+    numero_dossier:num,
+    commune:commune,
+    statut:statut,
+    schema_version:23,
+    snapshot_json:JSON.stringify({ROOMS:[],ALL_DATA:{fields:{},rooms:{}},PHOTOS:[],PLANS:{},PLANS_SCALE:{},form:form})
+  }).select('id').single();
+  if(r.error){
+    var msg2=document.getElementById('new-msg');
+    msg2.className='msg error';msg2.textContent='Erreur : '+r.error.message;msg2.style.display='block';
+    return;
+  }
+  closeModal('modal-new');
+  toast('✓ Dossier créé : '+nomComplet);
+  openDossier(r.data.id);
+}
+
+// ── Statut modal ──
+function openStatutModal(id,enc){
+  document.getElementById('statut-modal-id').value=id;
+  document.getElementById('statut-modal-name').textContent=decodeURIComponent(enc);
+  openModal('modal-statut');
+}
+async function setStatut(st){
+  var id=document.getElementById('statut-modal-id').value;
+  await _sb.from('dossiers').update({statut:st,date_modif:new Date().toISOString()}).eq('id',id);
+  closeModal('modal-statut');
+  await loadDossiers();
+  toast('✓ Statut mis à jour : '+(STATUTS[st]||{label:st}).label);
+}
+
+// ── Delete modal ──
+function openDeleteModal(id,enc){
+  document.getElementById('del-modal-id').value=id;
+  document.getElementById('del-modal-name').textContent=decodeURIComponent(enc);
+  openModal('modal-del');
+}
+async function confirmDelete(){
+  var id=document.getElementById('del-modal-id').value;
+  await _sb.from('dossiers').delete().eq('id',id);
+  closeModal('modal-del');
+  await loadDossiers();
+  toast('✓ Dossier supprimé');
+}
+
+// ── Keyboard ──
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    ['modal-new','modal-statut','modal-del'].forEach(closeModal);
+  }
+});
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click',function(e){if(e.target===m)closeModal(m.id);});
+});
+
+// ── Boot ──
+(async function boot(){
+  var cfg=getConfig();
+  if(cfg&&cfg.url&&cfg.key){
+    document.getElementById('cfg-url').value=cfg.url;
+    document.getElementById('cfg-key').value=cfg.key;
+    if(!initSB(cfg.url,cfg.key)){
+      document.getElementById('auth-overlay').classList.remove('hidden');
+      showStep('config');
+      return;
+    }
+    var r=await _sb.auth.getSession();
+    if(r.data&&r.data.session){
+      await onSession(r.data.session);
+    } else {
+      document.getElementById('auth-overlay').classList.remove('hidden');
+      showStep('login');
+    }
+    _sb.auth.onAuthStateChange(async function(ev,session){
+      if(ev==='SIGNED_IN'&&session)await onSession(session);
+      else if(ev==='SIGNED_OUT'){
+        _user=null;
+        document.getElementById('user-pill').style.display='none';
+        document.getElementById('btn-logout').style.display='none';
+        document.getElementById('auth-overlay').classList.remove('hidden');
+        showStep('login');
+      }
+    });
+  } else {
+    document.getElementById('auth-overlay').classList.remove('hidden');
+    showStep('config');
+  }
+})();
+</script>
+</body>
+</html>
