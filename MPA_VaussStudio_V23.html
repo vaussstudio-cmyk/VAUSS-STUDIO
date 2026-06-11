@@ -3529,32 +3529,17 @@ function addDocV(){
       <div class="sb-logo-mark">V</div>
       <div><div class="sb-logo-text">Vauss Studio</div><div class="sb-logo-sub">AMO MPA &amp; MOE DPAH</div></div>
     </div>
-    <div id="sb-step-config">
-      <div class="sb-title">⚙ Configuration Supabase</div>
-      <div class="sb-sub">Entrez vos identifiants Supabase une seule fois. Ils seront mémorisés dans ce navigateur.</div>
-      <input class="sb-input" id="sb-cfg-url" placeholder="URL Supabase — https://xyz.supabase.co" type="url">
-      <input class="sb-input" id="sb-cfg-key" placeholder="Clé publique anon key" type="text">
-      <div class="sb-msg" id="sb-cfg-msg"></div>
-      <button class="sb-btn" onclick="sbSaveConfig()"><i class="ti ti-check"></i> Enregistrer et continuer</button>
-      <div class="sb-divider">ou</div>
-      <button class="sb-btn sb-secondary" onclick="sbSkipToLocal()"><i class="ti ti-database-off"></i> Utiliser sans compte (local)</button>
-    </div>
-    <div id="sb-step-login" style="display:none">
-      <div class="sb-title">🔐 Connexion</div>
-      <div class="sb-sub">Entrez votre adresse email. Vous recevrez un lien de connexion sécurisé — aucun mot de passe.</div>
-      <input class="sb-input" id="sb-email" placeholder="votre@email.fr" type="email" onkeydown="if(event.key==='Enter')sbSendMagicLink()">
+    <div id="sb-step-login">
+      <div class="sb-title">🔐 Accès</div>
+      <div class="sb-sub">Entrez le mot de passe pour accéder à la plateforme.</div>
+      <input class="sb-input" id="sb-pass" placeholder="Mot de passe" type="password" onkeydown="if(event.key==='Enter')sbDoLogin()">
       <div class="sb-msg" id="sb-login-msg"></div>
-      <button class="sb-btn" id="sb-login-btn" onclick="sbSendMagicLink()"><i class="ti ti-mail"></i> Envoyer le lien de connexion</button>
-      <div class="sb-divider">ou</div>
-      <button class="sb-btn sb-secondary" onclick="sbSkipToLocal()"><i class="ti ti-database-off"></i> Continuer sans compte</button>
-      <span class="sb-link" onclick="sbShowConfigStep()">Modifier la configuration Supabase</span>
+      <button class="sb-btn" id="sb-login-btn" onclick="sbDoLogin()"><i class="ti ti-login"></i> Accéder</button>
     </div>
     <div id="sb-step-sent" style="display:none">
-      <div style="text-align:center;font-size:52px;margin-bottom:14px">📬</div>
-      <div class="sb-title" style="text-align:center">Vérifiez votre email</div>
-      <div class="sb-sub" style="text-align:center">Un lien a été envoyé à <b id="sb-sent-email"></b>.<br>Cliquez dessus depuis cet appareil pour vous connecter.</div>
-      <div class="sb-msg info" style="display:block">⏱ Le lien expire dans 1 heure.</div>
-      <button class="sb-btn sb-secondary" style="margin-top:10px" onclick="sbShowLoginStep()"><i class="ti ti-arrow-left"></i> Retour</button>
+      <div style="text-align:center;font-size:52px;margin-bottom:14px">✅</div>
+      <div class="sb-title" style="text-align:center">Connecté !</div>
+      <div class="sb-sub" style="text-align:center">Chargement du dossier…</div>
     </div>
   </div>
 </div>
@@ -3585,50 +3570,38 @@ function addDocV(){
 var SB_SCHEMA=23;
 var _sbClient=null,_sbUser=null,_sbDossierId=null,_sbMode='local',_sbSaveTmr=null;
 
-function sbGetConfig(){try{return JSON.parse(localStorage.getItem('vbd_sb_config')||'null');}catch(e){return null;}}
-function sbSetConfig(u,k){localStorage.setItem('vbd_sb_config',JSON.stringify({url:u,key:k}));}
+var _SUPABASE_URL='https://wwaknewipnsurmxsblde.supabase.co';
+var _SUPABASE_KEY='sb_publishable_zVXKQKyLPPxXqnffILF2ZA_XHTiQFTa';
+var _SHARED_EMAIL='vauss.studio@gmail.com';
+var _APP_PASSWORD='vausssmpa';
 
-function sbInit(url,key){
-  try{_sbClient=window.supabase.createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return true;}
+function sbInit(){
+  try{_sbClient=window.supabase.createClient(_SUPABASE_URL,_SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});return true;}
   catch(e){console.error(e);return false;}
 }
 
 function sbMsg(id,type,msg){var el=document.getElementById(id);if(el){el.className='sb-msg '+type;el.textContent=msg;}}
-function sbShowStep(s){['config','login','sent'].forEach(function(x){var el=document.getElementById('sb-step-'+x);if(el)el.style.display=(x===s)?'block':'none';});}
-function sbShowConfigStep(){sbShowStep('config');}
+function sbShowStep(s){['login','sent'].forEach(function(x){var el=document.getElementById('sb-step-'+x);if(el)el.style.display=(x===s)?'block':'none';});}
 function sbShowLoginStep(){sbShowStep('login');}
 function sbShowOverlay(){var o=document.getElementById('sb-overlay');if(o)o.classList.remove('hidden');}
 function sbHideOverlay(){var o=document.getElementById('sb-overlay');if(o)o.classList.add('hidden');}
 
-function sbSaveConfig(){
-  var url=(document.getElementById('sb-cfg-url').value||'').trim();
-  var key=(document.getElementById('sb-cfg-key').value||'').trim();
-  if(!url||!key){sbMsg('sb-cfg-msg','error','Remplissez les deux champs.');return;}
-  if(!sbInit(url,key)){sbMsg('sb-cfg-msg','error','Identifiants invalides.');return;}
-  sbSetConfig(url,key);
-  sbMsg('sb-cfg-msg','success','Enregistré !');
-  setTimeout(sbShowLoginStep,600);
-}
-
-async function sbSendMagicLink(){
-  var email=(document.getElementById('sb-email').value||'').trim();
-  if(!email||!email.includes('@')){sbMsg('sb-login-msg','error','Email invalide.');return;}
+async function sbDoLogin(){
+  var pass=(document.getElementById('sb-pass').value||'').trim();
+  if(!pass){sbMsg('sb-login-msg','error','Mot de passe requis.');return;}
+  if(pass!==_APP_PASSWORD){sbMsg('sb-login-msg','error','Mot de passe incorrect.');return;}
   var btn=document.getElementById('sb-login-btn');
-  btn.disabled=true;btn.textContent='Envoi…';
+  btn.disabled=true;btn.textContent='Connexion…';
   try{
-    var res=await _sbClient.auth.signInWithOtp({email:email,options:{emailRedirectTo:window.location.href}});
-    if(res.error)throw res.error;
-    document.getElementById('sb-sent-email').textContent=email;
+    var r=await _sbClient.auth.signInWithPassword({email:_SHARED_EMAIL,password:_APP_PASSWORD});
+    if(r.error)throw r.error;
     sbShowStep('sent');
-  }catch(err){sbMsg('sb-login-msg','error','Erreur : '+err.message);}
-  finally{btn.disabled=false;btn.innerHTML='<i class="ti ti-mail"></i> Envoyer le lien de connexion';}
-}
-
-function sbSkipToLocal(){
-  _sbMode='local';_sbClient=null;_sbUser=null;
-  sbHideOverlay();
-  toast('📂 Mode local — données dans ce navigateur uniquement');
-  sbRunPostInit();
+    await sbOnSession(r.data.session);
+  }catch(err){
+    sbMsg('sb-login-msg','error','Erreur de connexion. Contactez l administrateur.');
+    btn.disabled=false;
+    btn.innerHTML='<i class="ti ti-login"></i> Accéder';
+  }
 }
 
 async function sbOnSession(session){
@@ -3827,29 +3800,25 @@ function sbLogout(){
 
 // ── Bootstrap ──
 (async function sbBoot(){
-  var cfg=sbGetConfig();
-  if(cfg&&cfg.url&&cfg.key){
-    document.getElementById('sb-cfg-url').value=cfg.url;
-    document.getElementById('sb-cfg-key').value=cfg.key;
-    if(!sbInit(cfg.url,cfg.key)){sbShowOverlay();sbShowConfigStep();return;}
-    var r=await _sbClient.auth.getSession();
-    if(r.data&&r.data.session){
-      await sbOnSession(r.data.session);
-    } else {
+  if(!sbInit()){
+    sbShowOverlay();sbShowLoginStep();
+    return;
+  }
+  var r=await _sbClient.auth.getSession();
+  if(r.data&&r.data.session){
+    await sbOnSession(r.data.session);
+  } else {
+    sbShowOverlay();sbShowLoginStep();
+  }
+  _sbClient.auth.onAuthStateChange(async function(ev,session){
+    if(ev==='SIGNED_IN'&&session)await sbOnSession(session);
+    else if(ev==='SIGNED_OUT'){
+      _sbUser=null;_sbMode='local';
+      document.getElementById('sb-user-info').style.display='none';
+      document.getElementById('btn-dossiers').style.display='none';
       sbShowOverlay();sbShowLoginStep();
     }
-    _sbClient.auth.onAuthStateChange(async function(ev,session){
-      if(ev==='SIGNED_IN'&&session)await sbOnSession(session);
-      else if(ev==='SIGNED_OUT'){
-        _sbUser=null;_sbMode='local';
-        document.getElementById('sb-user-info').style.display='none';
-        document.getElementById('btn-dossiers').style.display='none';
-        sbShowOverlay();sbShowLoginStep();
-      }
-    });
-  } else {
-    sbShowOverlay();sbShowConfigStep();
-  }
+  });
 })();
 </script>
 
