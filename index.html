@@ -738,9 +738,6 @@ function renderGrid(){
 async function openDossier(id){
   // Save dossier ID to sessionStorage so the app can pick it up
   sessionStorage.setItem('vbd_open_dossier_id',id);
-  // Get config
-  var cfg=getConfig();
-  if(cfg)sessionStorage.setItem('vbd_hub_config',JSON.stringify(cfg));
   // Navigate to app
   window.location.href=APP_URL+'?dos='+id;
 }
