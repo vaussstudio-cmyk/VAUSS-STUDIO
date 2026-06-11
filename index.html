@@ -573,7 +573,7 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 var _SUPABASE_URL='https://wwaknewipnsurmxsblde.supabase.co';
 var _SUPABASE_KEY='sb_publishable_zVXKQKyLPPxXqnffILF2ZA_XHTiQFTa';
 var _SHARED_EMAIL='vauss.studio@gmail.com';
-var _APP_PASSWORD='vauss-studio-mpa';
+var _APP_PASSWORD='vausssmpa';
 
 function showStep(s){
   ['login','sent'].forEach(function(x){
@@ -607,7 +607,7 @@ async function doLogin(){
     showStep('sent');
     await onSession(r.data.session);
   }catch(err){
-    showMsg('login-msg','error','Erreur de connexion. Contactez l'administrateur.');
+    showMsg('login-msg','error','Erreur de connexion. Contactez l administrateur.');
     btn.disabled=false;
     btn.innerHTML='<i class="ti ti-login"></i> Accéder';
   }
